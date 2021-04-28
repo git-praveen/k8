@@ -1,0 +1,49 @@
+CNI Weave Net is required for using Network Policy
+Weave Net : kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+
+### Create Default Deny Policy.
+# cat <<EOF | kubectl apply -f -
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+EOF
+
+### Create a POD 
+# kubectl run nginx-01 --image=nginx
+
+### Create Network policy to allow incoming traffic from another POD on port 80. And new pod should have label run:app.
+
+# cat <<EOF | kubectl apply -f -
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: nginx-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      run: nginx-01
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+                run: app
+    ports:
+      - port: 80
+        protocol: TCP
+EOF
+
+### Now create new pod and test connection
+# kubectl run app --image=busybox --restart=Never -it --rm -- /bin/sh
+If you don't see a command prompt, try pressing enter.
+/ # nc -zv 10.32.0.5 80
+10.32.0.5 (10.32.0.5:80) open
+/ #
+
+
