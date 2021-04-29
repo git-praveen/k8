@@ -1,0 +1,30 @@
+Edit Image of replicaset 
+# kubectl set image rs rs-1 nginx=nginx:alpine
+replicaset.apps/rs-1 image updated
+
+Create pod in NS 
+# kubectl run redis01 --image=redis --namespace finance
+POD with labels
+# kubectl run redis02 --image=redis:alpine --labels=tier=db
+
+Create Service 
+# kubectl expose pod --name=redis-service redis02 --port=6379 --type=ClusterIP  --dry-run=client -o yaml > redis-service.yaml
+root@master:~/exam-set-01# k describe svc redis-service
+Name:              redis-service
+Namespace:         default
+Labels:            tier=db
+Annotations:       <none>
+Selector:          tier=db
+Type:              ClusterIP
+IP Family Policy:  SingleStack
+IP Families:       IPv4
+IP:                10.96.187.184
+IPs:               10.96.187.184
+Port:              <unset>  6379/TCP
+TargetPort:        6379/TCP
+Endpoints:         10.32.0.10:6379
+Session Affinity:  None
+Events:            <none>
+root@master:~/exam-set-01# nc -zv 10.32.0.10 6379
+Connection to 10.32.0.10 6379 port [tcp/*] succeeded!
+root@master:~/exam-set-01#
